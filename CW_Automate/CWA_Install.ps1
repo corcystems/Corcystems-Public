@@ -8,6 +8,8 @@ $FQDN='https://labtech.corcystems.com'
 $SERVERPASS='eI11d8I6dGMxW+mqzBwSJA=='
 #--------------------------------------------------------
 
+Write-Host "$clientLocation"
+
 $serviceName = 'LTService'
 If (Get-Service $serviceName -ErrorAction SilentlyContinue) {
 Write-Host "$serviceName service already installed. Exiting Script"
