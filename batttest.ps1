@@ -12,7 +12,7 @@ try {
     POWERCFG /BATTERYREPORT /OUTPUT $OutFile_FullPath /XML | Out-Null
 } catch {
     Write-Host "Error running battery report"
-	exit
+    exit
 }
 ​
 if (Test-Path -Path $OutFile_FullPath) {
@@ -30,4 +30,3 @@ if (Test-Path -Path $OutFile_FullPath) {
 		Write-Host "Battery Max Charge Fell by a detrimental amount"
 	}
 }
-​
