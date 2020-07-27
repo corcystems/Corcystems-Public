@@ -1,27 +1,12 @@
-#!ps
-#timeout=9000000
-#maxlength=9000000
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Per use variables modify as needed
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-param(
-[Parameter(Position=1)]
-[String]$ClientLocation
-)
-
-If ($ClientLocation -eq $null)
-{$ClientLocation = Read-Host -Prompt 'Input Client Location. Press enter to set to default = 1'}
 
 If ($ClientLocation -eq $null)
 {$ClientLocation = '1'}
 
 If ($ClientLocation -eq "")
-{$ClientLocation = Read-Host -Prompt 'Input Client Location. Press enter to set to default = 1'}
-
-If ($ClientLocation -eq "")
 {$ClientLocation = '1'}
-
 
 $WriteOutput = $True
 
