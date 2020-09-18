@@ -22,11 +22,9 @@ Foreach ($item in $ProfileList) {
  
     #####################################################################
 
-    $currentUser = $($item.Username)
-    $currentUserShares = Get-ItemProperty registry::HKEY_USERS\$($Item.SID)\Network\* | Foreach {$($_.PSChildName + ": " + $_.RemotePath)}
+    $currentUserShares = "User: " + $($item.Username) + "`n " + (Get-ItemProperty registry::HKEY_USERS\$($Item.SID)\Network\* | Foreach {$("Drive Letter: " + $_.PSChildName + " Path: " + $_.RemotePath + "`n")})
     
     if ($currentUserShares) {
-    $currentUser
     $currentUserShares
     }
     #####################################################################
