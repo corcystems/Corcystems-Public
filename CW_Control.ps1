@@ -72,13 +72,6 @@ IF([Net.SecurityProtocolType]::Tls13) {[Net.ServicePointManager]::SecurityProtoc
 #Per use variables modify as needed
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Param (
-	[string] $Company,
-	[string] $Site,
-	[string] $Comments,
-	[string] $DeviceType
-)
-
 #Set Nulls to ""
 If ($Company -eq $null) {$Company = ""}
 If ($Site -eq $null) {$Site = ""}
@@ -86,8 +79,6 @@ If ($Comments -eq $null) {$Comments = ""}
 If ($DeviceType -eq $null) {$DeviceType = ""}
 
 $WriteOutput = $True
-
-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Constants do not change
