@@ -22,8 +22,12 @@
   This is the DeviceType field in CW Control this agent will install as. Can be left blank (default).
   
 .EXAMPLE
-    Install-CWControl -Company 'Acme Company' -Site 'Main' -Comments 'Test Device' -DeviceType 'Jumpbox'
-    This will install CW Control agent using the provided Company, Site, Comments, and DeviceType fields.
+  $Company = "ACME Company"
+  $Site = "Main"
+  $Comments = "Test Computer"
+  $DeviceType = "Jumpbox"
+  $cwControlScript = (new-object Net.WebClient).DownloadString('https://raw.githubusercontent.com/corcystems/Corcystems-Public/master/CW_Control.ps1')
+  Invoke-Expression $cwControlScript
 
 .NOTES
 	Version:        1.0
@@ -32,8 +36,6 @@
   
 #>
 
-Function Install-CWControl
-{
 #Check to make sure PS is version 3.
 if (-not ($PSVersionTable))
 {Write-Warning 'Powershell 1 Detected. PowerShell Version 3.0 or higher is required.';return}
@@ -41,8 +43,6 @@ elseif ($PSVersionTable.PSVersion.Major -eq 2 )
 {Write-Warning 'Powershell 2 Detected. PowerShell Version 3.0 or higher is required.';return}
 elseif ($PSVersionTable.PSVersion.Major -lt 3 )
 {Write-Warning 'Powershell 3+ Not Detected. PowerShell Version 3.0 or higher is required.';return}
-
-
 
 #Ignore SSL errors
 If ($Null -eq ([System.Management.Automation.PSTypeName]'TrustAllCertsPolicy').Type) {
@@ -65,6 +65,13 @@ IF([Net.SecurityProtocolType]::Tls11) {[Net.ServicePointManager]::SecurityProtoc
 IF([Net.SecurityProtocolType]::Tls12) {[Net.ServicePointManager]::SecurityProtocol=[Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12}
 IF([Net.SecurityProtocolType]::Tls13) {[Net.ServicePointManager]::SecurityProtocol=[Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls13}
 
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Per use variables modify as needed
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Param (
 	[string] $Company,
 	[string] $Site,
@@ -80,6 +87,11 @@ If ($DeviceType -eq $null) {$DeviceType = ""}
 
 $WriteOutput = $True
 
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Constants do not change
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Set URL
 $baseURL = "https://join.corcystems.com/Bin/ConnectWiseControl.ClientSetup.msi?h=join.corcystems.com&p=8041&k=BgIAAACkAABSU0ExAAgAAAEAAQAlC9ZHys7DODPwf6K1PP7iY7cwNlfB%2FUzS7ueE3FBLC2llkPpWeHUpL3GXT4QSZo1mRT2CjO8im748tHNnt28d%2F6QpWlcX5rC20AWIEPWZv1brdMrSKMssu91un61I6TkVxrFJoWRJn7JgLY7JDNAmLBz7o%2Fw4brnBY5PbTbrXARArXalsGmfPhllXNauWnUi58toI5s%2FXo%2BeZpix8xv0yW9q6i3JxyfN2TexoLE3dv40Xr2RVDheWe7BNMqGqSUZIxhrfk6fEop3N%2FkqjO17gKLWqi5NhTkopJixK2JE9IMwCU8Non5fW40WQcuHFuQinqtsa9n2XwZoLNPh5PAfS&e=Access&y=Guest&t="
 
@@ -96,6 +108,10 @@ $fileDest = 'C:\Windows\Temp\CW_Control.msi'
 $cwcService = 'ScreenConnect Client (8d6cd6b3656cd6f5)'
 
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Check if CW Control is installed and running. Start if not running and install if not installed.
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Check to see if CW Control is already installed and running.
 if (Get-Service $cwcService -ErrorAction SilentlyContinue) {
 	#CW Control is already installed.
@@ -128,5 +144,4 @@ if (Get-Service $cwcService -ErrorAction SilentlyContinue) {
 			throw $_.Exception.Message
 		}
 	}
-}
 }
