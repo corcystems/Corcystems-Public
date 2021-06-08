@@ -127,10 +127,11 @@ if (Get-Service $cwcService -ErrorAction SilentlyContinue) {
 			throw $_.Exception.Message
 		}
 	} else {
-		#If the file is already downloaded just run the installer.
+		#If the file is already downloaded, delete the file then download and run the installer.
 		try {
-			#Attempt to install CW Control.
-			MsiExec.exe /i $fileDest /qn
+			#Delete current file, download then install CW Control.
+			Remove-Item $fileDest
+			Invoke-WebRequest -Uri $cwcURL -OutFile $fileDest; MsiExec.exe /i $fileDest /qn
 		} catch {
 			throw $_.Exception.Message
 		}
