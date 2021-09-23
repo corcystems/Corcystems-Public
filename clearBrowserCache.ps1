@@ -4,7 +4,7 @@
 	dir C:\Users | select Name | Export-Csv -Path C:\users.csv -NoTypeInformation
 	$list = Test-Path C:\users.csv
 	Write-Host "Starting Script..."
-<#
+
 # Check for C:\users.csv. Exit if not found.
 if ($list) {
 	# Clear Mozilla Firefox Cache
@@ -19,7 +19,7 @@ if ($list) {
 			Remove-Item -path C:\Users\$($_.Name)\AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite -Recurse -Force -ErrorAction SilentlyContinue -Verbose
 			}
  		Write-Host "Firefox Done..."
-
+<#
 	# Clear Google Chrome 
 		Write-Host "Clearing Google Chrome Caches"
 		Import-CSV -Path C:\users.csv -Header Name | foreach {
@@ -51,5 +51,5 @@ if ($list) {
 	Write-Host "C:\users.csv not found, script exit."
 
 	Exit
+	#>
 }
-#>
