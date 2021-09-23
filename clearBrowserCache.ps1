@@ -2,11 +2,8 @@
 	Write-Host "Getting the list of users"
 	Write-Host "Exporting the list of users to c:\users.csv"
 	dir C:\Users | select Name | Export-Csv -Path C:\users.csv -NoTypeInformation
-	$list = Test-Path C:\users.csv
 	Write-Host "Starting Script..."
 
-# Check for C:\users.csv. Exit if not found.
-if ($list) {
 	# Clear Mozilla Firefox Cache
 		Write-Host "Clearing Mozilla Firefox Caches"
 		Import-CSV -Path C:\users.csv -Header Name | foreach {
@@ -52,4 +49,3 @@ if ($list) {
 
 	Exit
 	#>
-}
