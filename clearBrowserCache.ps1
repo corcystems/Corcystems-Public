@@ -45,8 +45,6 @@ if ($list) {
 	# All browsers cleared
 	Write-Host "All Tasks Done!"
 
-	Exit
-
 	} else {
 
 	# C:\users.csv not found, exit sctipt.
