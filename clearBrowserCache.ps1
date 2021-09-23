@@ -29,7 +29,7 @@
 			}
 		Write-Host "Chrome Done..."
 #>
-<#
+
 	# Clear Internet Explorer
 		Write-Host "Clearing Internet Explorer Caches"
 		Import-CSV -Path C:\users.csv | foreach {
@@ -43,4 +43,4 @@
 
 	# All browsers cleared
 	Write-Host "All Tasks Done!"
-#>
+
