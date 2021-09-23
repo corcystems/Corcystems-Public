@@ -3,7 +3,7 @@
 	Write-Host "Exporting the list of users to c:\users.csv"
 	dir C:\Users | select Name | Export-Csv -Path C:\users.csv -NoTypeInformation
 	Write-Host "Starting Script..."
-
+<#
 	# Clear Mozilla Firefox Cache
 		Write-Host "Clearing Mozilla Firefox Caches"
 		Import-CSV -Path C:\users.csv -Header Name | foreach {
@@ -16,6 +16,7 @@
 			Remove-Item -path C:\Users\$($_.Name)\AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite -Recurse -Force -ErrorAction SilentlyContinue -Verbose
 			}
  		Write-Host "Firefox Done..."
+#>
 <#
 	# Clear Google Chrome 
 		Write-Host "Clearing Google Chrome Caches"
@@ -27,7 +28,8 @@
 			Remove-Item -path "C:\Users\$($_.Name)\AppData\Local\Google\Chrome\User Data\Default\Cookies-Journal" -Recurse -Force -ErrorAction SilentlyContinue -Verbose
 			}
 		Write-Host "Chrome Done..."
-
+#>
+<#
 	# Clear Internet Explorer
 		Write-Host "Clearing Internet Explorer Caches"
 		Import-CSV -Path C:\users.csv | foreach {
@@ -41,11 +43,4 @@
 
 	# All browsers cleared
 	Write-Host "All Tasks Done!"
-
-	} else {
-
-	# C:\users.csv not found, exit sctipt.
-	Write-Host "C:\users.csv not found, script exit."
-
-	Exit
-	#>
+#>
