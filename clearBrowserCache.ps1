@@ -19,7 +19,7 @@ if ($list) {
 			Remove-Item -path C:\Users\$($_.Name)\AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite -Recurse -Force -ErrorAction SilentlyContinue -Verbose
 			}
  		Write-Host "Firefox Done..."
-
+<#
 	# Clear Google Chrome 
 		Write-Host "Clearing Google Chrome Caches"
 		Import-CSV -Path C:\users.csv -Header Name | foreach {
@@ -44,7 +44,7 @@ if ($list) {
 
 	# All browsers cleared
 	Write-Host "All Tasks Done!"
-
+#>
 	} else {
 
 	# C:\users.csv not found, exit sctipt.
