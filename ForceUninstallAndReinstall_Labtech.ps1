@@ -1,3 +1,7 @@
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Per use variables modify as needed
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
