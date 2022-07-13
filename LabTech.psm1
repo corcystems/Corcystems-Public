@@ -16,28 +16,9 @@
     Website:        labtechconsulting.com
     Creation Date:  3/14/2016
     Purpose/Change: Initial script development
-
-    Update Date: 6/1/2017
-    Purpose/Change: Updates for better overall compatibility, including better support for PowerShell V2
-
-    Update Date: 1/23/2018
-    Purpose/Change: Updates to address 32-bit vs. 64-bit environments
-
-    Update Date: 2/1/2018
-    Purpose/Change: Updates for support of Proxy Settings. Enabled -WhatIf processing for many functions.
-
-    Update Date: 8/7/2018
-    Purpose/Change: Added support for TLS 1.2
-
-    Update Date: 8/28/2018
-    Purpose/Change: Added Update-LTService function
-
-    Update Date: 2/26/2019
-    Purpose/Change: Update to support 32-bit execution in 64-bit OS without SYSNATIVE redirection
-
-    Update Date: 9/9/2020
-    Purpose/Change: Update to support 64-bit OS without SYSNATIVE redirection (ARM64)
 #>
+
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 
 If (-not ($PSVersionTable)) {Write-Warning 'PS1 Detected. PowerShell Version 2.0 or higher is required.';return}
 ElseIf ($PSVersionTable.PSVersion.Major -lt 3 ) {Write-Verbose 'PS2 Detected. PowerShell Version 3.0 or higher may be required for full functionality.'}
