@@ -17,13 +17,6 @@ Function Get-PSVersion {
 	if (test-path variable:psversiontable) {$psversiontable.psversion} else {[version]"1.0.0.0"}
 }
 
-#PS 2.0 JSON Conversion
-function Escape-JSONString($str){
-	if ($null -eq $str) {return ""}
-	$str = $str.ToString().Replace('"','\"').Replace('\','\\').Replace("`n",'\n').Replace("`r",'\r').Replace("`t",'\t')
-	return $str;
-}
-
 function extractHostname($url) {
     if ($url -eq "") {
         $false
@@ -37,13 +30,14 @@ function extractHostname($url) {
     }
 }
 
-# Author: Joakim Borger Svendsen, 2017. http://www.json.org
-# Svendsen Tech. Public domain licensed code.
+# Author: Joakim Borger Svendsen, 2017. 
+# JSON info: http://www.json.org
+# Svendsen Tech. MIT License. Copyright Joakim Borger Svendsen / Svendsen Tech. 2016-present.
 
 # Take care of special characters in JSON (see json.org), such as newlines, backslashes
 # carriage returns and tabs.
 # '\\(?!["/bfnrt]|u[0-9a-f]{4})'
-function FormatString {
+function EscapeJson {
     param(
         [String] $String)
     # removed: #-replace '/', '\/' `
@@ -64,13 +58,16 @@ function GetNumberOrString {
         $InputObject)
     if ($InputObject -is [System.Byte] -or $InputObject -is [System.Int32] -or `
         ($env:PROCESSOR_ARCHITECTURE -imatch '^(?:amd64|ia64)$' -and $InputObject -is [System.Int64]) -or `
-        $InputObject -is [System.Decimal] -or $InputObject -is [System.Double] -or `
+        $InputObject -is [System.Decimal] -or `
+        ($InputObject -is [System.Double] -and -not [System.Double]::IsNaN($InputObject) -and -not [System.Double]::IsInfinity($InputObject)) -or `
         $InputObject -is [System.Single] -or $InputObject -is [long] -or `
         ($Script:CoerceNumberStrings -and $InputObject -match $Script:NumberRegex)) {
+        Write-Verbose -Message "Got a number as end value."
         "$InputObject"
     }
     else {
-        """$(FormatString -String $InputObject)"""
+        Write-Verbose -Message "Got a string (or 'NaN') as end value."
+        """$(EscapeJson -String $InputObject)"""
     }
 }
 
@@ -78,140 +75,257 @@ function ConvertToJsonInternal {
     param(
         $InputObject, # no type for a reason
         [Int32] $WhiteSpacePad = 0)
+    
     [String] $Json = ""
+    
     $Keys = @()
+    
+    Write-Verbose -Message "WhiteSpacePad: $WhiteSpacePad."
+    
     if ($null -eq $InputObject) {
+        Write-Verbose -Message "Got 'null' in `$InputObject in inner function"
         $null
     }
+    
     elseif ($InputObject -is [Bool] -and $InputObject -eq $true) {
+        Write-Verbose -Message "Got 'true' in `$InputObject in inner function"
         $true
     }
+    
     elseif ($InputObject -is [Bool] -and $InputObject -eq $false) {
+        Write-Verbose -Message "Got 'false' in `$InputObject in inner function"
         $false
     }
+    
+    elseif ($InputObject -is [DateTime] -and $Script:DateTimeAsISO8601) {
+        Write-Verbose -Message "Got a DateTime and will format it as ISO 8601."
+        """$($InputObject.ToString('yyyy\-MM\-ddTHH\:mm\:ss'))"""
+    }
+    
     elseif ($InputObject -is [HashTable]) {
         $Keys = @($InputObject.Keys)
+        Write-Verbose -Message "Input object is a hash table (keys: $($Keys -join ', '))."
     }
+    
     elseif ($InputObject.GetType().FullName -eq "System.Management.Automation.PSCustomObject") {
         $Keys = @(Get-Member -InputObject $InputObject -MemberType NoteProperty |
             Select-Object -ExpandProperty Name)
+
+        Write-Verbose -Message "Input object is a custom PowerShell object (properties: $($Keys -join ', '))."
     }
+    
     elseif ($InputObject.GetType().Name -match '\[\]|Array') {
-        #$Json += " " * ((4 * ($WhiteSpacePad / 4)) + 4) + "[`n" + (($InputObject | ForEach-Object {
+        
+        Write-Verbose -Message "Input object appears to be of a collection/array type. Building JSON for array input object."
+        
         $Json += "[`n" + (($InputObject | ForEach-Object {
+            
             if ($null -eq $_) {
+                Write-Verbose -Message "Got null inside array."
+
                 " " * ((4 * ($WhiteSpacePad / 4)) + 4) + "null"
             }
+            
             elseif ($_ -is [Bool] -and $_ -eq $true) {
+                Write-Verbose -Message "Got 'true' inside array."
+
                 " " * ((4 * ($WhiteSpacePad / 4)) + 4) + "true"
             }
+            
             elseif ($_ -is [Bool] -and $_ -eq $false) {
+                Write-Verbose -Message "Got 'false' inside array."
+
                 " " * ((4 * ($WhiteSpacePad / 4)) + 4) + "false"
             }
-            elseif ($_ -is [HashTable] -or $_.GetType().FullName -eq "System.Management.Automation.PSCustomObject" -or $_.GetType().Name -match '\[\]|Array') {
-                " " * ((4 * ($WhiteSpacePad / 4)) + 4) + (ConvertToJsonInternal -InputObject $_ -WhiteSpacePad ($WhiteSpacePad + 4)) -replace '\s*,\s*$' #-replace '\ {4}]', ']'
+            
+            elseif ($_ -is [DateTime] -and $Script:DateTimeAsISO8601) {
+                Write-Verbose -Message "Got a DateTime and will format it as ISO 8601."
+
+                " " * ((4 * ($WhiteSpacePad / 4)) + 4) + """$($_.ToString('yyyy\-MM\-ddTHH\:mm\:ss'))"""
             }
+            
+            elseif ($_ -is [HashTable] -or $_.GetType().FullName -eq "System.Management.Automation.PSCustomObject" -or $_.GetType().Name -match '\[\]|Array') {
+                Write-Verbose -Message "Found array, hash table or custom PowerShell object inside array."
+
+                " " * ((4 * ($WhiteSpacePad / 4)) + 4) + (ConvertToJsonInternal -InputObject $_ -WhiteSpacePad ($WhiteSpacePad + 4)) -replace '\s*,\s*$'
+            }
+            
             else {
+                Write-Verbose -Message "Got a number or string inside array."
+
                 $TempJsonString = GetNumberOrString -InputObject $_
                 " " * ((4 * ($WhiteSpacePad / 4)) + 4) + $TempJsonString
             }
-        #}) -join ",`n") + "`n],`n"
+
         }) -join ",`n") + "`n$(" " * (4 * ($WhiteSpacePad / 4)))],`n"
+
     }
     else {
+        Write-Verbose -Message "Input object is a single element (treated as string/number)."
+
         GetNumberOrString -InputObject $InputObject
     }
     if ($Keys.Count) {
+
+        Write-Verbose -Message "Building JSON for hash table or custom PowerShell object."
+
         $Json += "{`n"
+
         foreach ($Key in $Keys) {
+
             # -is [PSCustomObject]) { # this was buggy with calculated properties, the value was thought to be PSCustomObject
+
             if ($null -eq $InputObject.$Key) {
+                Write-Verbose -Message "Got null as `$InputObject.`$Key in inner hash or PS object."
                 $Json += " " * ((4 * ($WhiteSpacePad / 4)) + 4) + """$Key"": null,`n"
             }
+
             elseif ($InputObject.$Key -is [Bool] -and $InputObject.$Key -eq $true) {
+                Write-Verbose -Message "Got 'true' in `$InputObject.`$Key in inner hash or PS object."
                 $Json += " " * ((4 * ($WhiteSpacePad / 4)) + 4) + """$Key"": true,`n"            }
+
             elseif ($InputObject.$Key -is [Bool] -and $InputObject.$Key -eq $false) {
+                Write-Verbose -Message "Got 'false' in `$InputObject.`$Key in inner hash or PS object."
                 $Json += " " * ((4 * ($WhiteSpacePad / 4)) + 4) + """$Key"": false,`n"
             }
+
+            elseif ($InputObject.$Key -is [DateTime] -and $Script:DateTimeAsISO8601) {
+                Write-Verbose -Message "Got a DateTime and will format it as ISO 8601."
+                $Json += " " * ((4 * ($WhiteSpacePad / 4)) + 4) + """$Key"": ""$($InputObject.$Key.ToString('yyyy\-MM\-ddTHH\:mm\:ss'))"",`n"
+                
+            }
+
             elseif ($InputObject.$Key -is [HashTable] -or $InputObject.$Key.GetType().FullName -eq "System.Management.Automation.PSCustomObject") {
+                Write-Verbose -Message "Input object's value for key '$Key' is a hash table or custom PowerShell object."
                 $Json += " " * ($WhiteSpacePad + 4) + """$Key"":`n$(" " * ($WhiteSpacePad + 4))"
                 $Json += ConvertToJsonInternal -InputObject $InputObject.$Key -WhiteSpacePad ($WhiteSpacePad + 4)
             }
+
             elseif ($InputObject.$Key.GetType().Name -match '\[\]|Array') {
+
+                Write-Verbose -Message "Input object's value for key '$Key' has a type that appears to be a collection/array."
+                Write-Verbose -Message "Building JSON for ${Key}'s array value."
+
                 $Json += " " * ($WhiteSpacePad + 4) + """$Key"":`n$(" " * ((4 * ($WhiteSpacePad / 4)) + 4))[`n" + (($InputObject.$Key | ForEach-Object {
+
                     if ($null -eq $_) {
+                        Write-Verbose -Message "Got null inside array inside inside array."
                         " " * ((4 * ($WhiteSpacePad / 4)) + 8) + "null"
                     }
+
                     elseif ($_ -is [Bool] -and $_ -eq $true) {
+                        Write-Verbose -Message "Got 'true' inside array inside inside array."
                         " " * ((4 * ($WhiteSpacePad / 4)) + 8) + "true"
                     }
+
                     elseif ($_ -is [Bool] -and $_ -eq $false) {
+                        Write-Verbose -Message "Got 'false' inside array inside inside array."
                         " " * ((4 * ($WhiteSpacePad / 4)) + 8) + "false"
                     }
+
+                    elseif ($_ -is [DateTime] -and $Script:DateTimeAsISO8601) {
+                        Write-Verbose -Message "Got a DateTime and will format it as ISO 8601."
+                        " " * ((4 * ($WhiteSpacePad / 4)) + 8) + """$($_.ToString('yyyy\-MM\-ddTHH\:mm\:ss'))"""
+                    }
+
                     elseif ($_ -is [HashTable] -or $_.GetType().FullName -eq "System.Management.Automation.PSCustomObject" `
                         -or $_.GetType().Name -match '\[\]|Array') {
+                        Write-Verbose -Message "Found array, hash table or custom PowerShell object inside inside array."
                         " " * ((4 * ($WhiteSpacePad / 4)) + 8) + (ConvertToJsonInternal -InputObject $_ -WhiteSpacePad ($WhiteSpacePad + 8)) -replace '\s*,\s*$'
                     }
+
                     else {
+                        Write-Verbose -Message "Got a string or number inside inside array."
                         $TempJsonString = GetNumberOrString -InputObject $_
                         " " * ((4 * ($WhiteSpacePad / 4)) + 8) + $TempJsonString
                     }
+
                 }) -join ",`n") + "`n$(" " * (4 * ($WhiteSpacePad / 4) + 4 ))],`n"
+
             }
             else {
+
+                Write-Verbose -Message "Got a string inside inside hashtable or PSObject."
                 # '\\(?!["/bfnrt]|u[0-9a-f]{4})'
+
                 $TempJsonString = GetNumberOrString -InputObject $InputObject.$Key
                 $Json += " " * ((4 * ($WhiteSpacePad / 4)) + 4) + """$Key"": $TempJsonString,`n"
+
             }
+
         }
+
         $Json = $Json -replace '\s*,$' # remove trailing comma that'll break syntax
         $Json += "`n" + " " * $WhiteSpacePad + "},`n"
+
     }
+
     $Json
+
 }
 
 function ConvertTo-STJson {
     [CmdletBinding()]
     #[OutputType([Void], [Bool], [String])]
-    param(
+    Param(
         [AllowNull()]
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true,
-                   ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Mandatory=$True,
+                   ValueFromPipeline=$True,
+                   ValueFromPipelineByPropertyName=$True)]
         $InputObject,
         [Switch] $Compress,
-        [Switch] $CoerceNumberStrings = $false)
-    begin{
+        [Switch] $CoerceNumberStrings = $False,
+        [Switch] $DateTimeAsISO8601 = $False)
+    Begin{
+
         $JsonOutput = ""
         $Collection = @()
         # Not optimal, but the easiest now.
         [Bool] $Script:CoerceNumberStrings = $CoerceNumberStrings
+        [Bool] $Script:DateTimeAsISO8601 = $DateTimeAsISO8601
         [String] $Script:NumberRegex = '^-?\d+(?:(?:\.\d+)?(?:e[+\-]?\d+)?)?$'
         #$Script:NumberAndValueRegex = '^-?\d+(?:(?:\.\d+)?(?:e[+\-]?\d+)?)?$|^(?:true|false|null)$'
+
     }
-    process {
+
+    Process {
+
         # Hacking on pipeline support ...
         if ($_) {
+            Write-Verbose -Message "Adding object to `$Collection. Type of object: $($_.GetType().FullName)."
             $Collection += $_
         }
+
     }
-    end {
+
+    End {
+        
         if ($Collection.Count) {
+            Write-Verbose -Message "Collection count: $($Collection.Count), type of first object: $($Collection[0].GetType().FullName)."
             $JsonOutput = ConvertToJsonInternal -InputObject ($Collection | ForEach-Object { $_ })
         }
+        
         else {
             $JsonOutput = ConvertToJsonInternal -InputObject $InputObject
         }
+        
         if ($null -eq $JsonOutput) {
+            Write-Verbose -Message "Returning `$null."
             return $null # becomes an empty string :/
         }
+        
         elseif ($JsonOutput -is [Bool] -and $JsonOutput -eq $true) {
+            Write-Verbose -Message "Returning `$true."
             [Bool] $true # doesn't preserve bool type :/ but works for comparisons against $true
         }
+        
         elseif ($JsonOutput-is [Bool] -and $JsonOutput -eq $false) {
+            Write-Verbose -Message "Returning `$false."
             [Bool] $false # doesn't preserve bool type :/ but works for comparisons against $false
         }
+        
         elseif ($Compress) {
+            Write-Verbose -Message "Compress specified."
             (
                 ($JsonOutput -split "\n" | Where-Object { $_ -match '\S' }) -join "`n" `
                     -replace '^\s*|\s*,\s*$' -replace '\ *\]\ *$', ']'
@@ -221,11 +335,14 @@ function ConvertTo-STJson {
                     ')))\s*(?<Comma>,)?\s*$'), "`${1}:`${2}`${Comma}`n" `
               -replace '(?m)^\s*|\s*\z|[\r\n]+'
         }
+        
         else {
             ($JsonOutput -split "\n" | Where-Object { $_ -match '\S' }) -join "`n" `
                 -replace '^\s*|\s*,\s*$' -replace '\ *\]\ *$', ']'
         }
+    
     }
+
 }
 
 Function Test-CommandExists {
@@ -248,6 +365,27 @@ Function Test-JanusLoaded {
     catch { $false }
 }
 
+Function Test-FailedSignup {
+    try { 
+        $signup = get-content $env:windir\ltsvc\lterrors.txt | select-string "Failed Signup" | Select-Object -Last 1 
+        if ($signup -match "Failed Signup") { $true }
+        else {
+            $false
+        }
+    }
+    catch { $false }
+}
+Function Test-CryptoFailed {
+        try { 
+        $signup = get-content $env:windir\ltsvc\lterrors.txt | select-string "Unable to initialize remote agent security." | Select-Object -Last 1 
+        if ($signup -match "Unable to initialize remote agent security.") { $true }
+        else {
+            $false
+        }
+    }
+    catch { $false } 
+}
+
 Function Invoke-CheckIn {
     $servicecmd = (Join-Path $env:windir "\system32\sc.exe")
     # Force check-in
@@ -261,13 +399,19 @@ Function Start-AutomateDiagnostics {
 	Param(
         $ltposh = "http://bit.ly/LTPoSh",
         $automate_server = "",
-        [switch]$verbose = $false
+        [switch]$verbose,
+        [switch]$include_lterrors,
+        [switch]$skip_updates,
+        [switch]$use_sockets
     )
 
     if ($verbose) {
         $VerbosePreference = "Continue"
     }
 
+    $signup_failure = $false
+    $agent_crypto_failure = $false
+    $janus_res = $false
     # Initial checkin
     Invoke-CheckIn
 
@@ -304,14 +448,27 @@ Function Start-AutomateDiagnostics {
 	$ltservice_check = serviceCheck('LTService')
     $ltsvcmon_check = serviceCheck('LTSVCMon')
 
-    # Get reg keys in case LTPosh fails
+    # Check LTSVC path and lterrors.txt
     $ltsvc_path_exists = Test-Path -Path (Join-Path $env:windir "\ltsvc")
+    $lterrors_exists = Test-Path -Path (Join-Path $env:windir "\ltsvc\lterrors.txt")
+    
+    if ($include_lterrors) {
+        $lterrors = if ($lterrors_exists) { (Get-Content -Path (Join-Path $env:windir "\ltsvc\lterrors.txt")) -join "`n" } else {""}
+        $lterrors_enc = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($lterrors))
+    }
+    else { $lterrors_enc = "" }
+
+    # Get reg keys in case LTPosh fails
     $locationid = Try { (Get-ItemProperty -Path hklm:\software\labtech\service -ErrorAction Stop).locationid } Catch { $null }
     $clientid = Try { (Get-ItemProperty -Path hklm:\software\labtech\service -ErrorAction Stop).clientid } Catch { $null }
     $id = Try { (Get-ItemProperty -Path hklm:\software\labtech\service -ErrorAction Stop).id } Catch { $null }
     $version = Try { (Get-ItemProperty -Path hklm:\software\labtech\service -ErrorAction Stop).version } Catch { $null }
     $server = Try { ((Get-ItemProperty -Path hklm:\software\labtech\service -ErrorAction Stop)."Server Address") } Catch { $null }
-    $janus_res = Test-JanusLoaded
+    if ($ltsvc_path_exists -and $lterrors_exists) {
+        $janus_res = Test-JanusLoaded
+        $signup_failure = Test-FailedSignup
+        $agent_crypto_failure = Test-CryptoFailed
+    }
 
     if ($ltposh_loaded) {
         # Get ltservice info
@@ -319,8 +476,9 @@ Function Start-AutomateDiagnostics {
             $info = Get-LTServiceInfo
 
             # Get checkin / heartbeat times to DateTime
-	        $lastsuccess = Get-Date $info.LastSuccessStatus
 	        $lasthbsent = Get-Date $info.HeartbeatLastSent
+	        # This could throw exception because it is only returned if there has been a SuccessStatus
+			if ($info.LastSuccessStatus) {$lastsuccess = Get-Date $info.LastSuccessStatus} 
 	        $lasthbrcv = Get-Date $info.HeartbeatLastReceived
 
             # Check online and heartbeat statuses
@@ -353,12 +511,13 @@ Function Start-AutomateDiagnostics {
                 Write-Verbose "Issuing Restart-LTService and sending checkin"
                 Restart-LTService
                 Invoke-CheckIn
-                Start-Sleep -Seconds 15
+                Start-Sleep -Seconds 10
                 $info = Get-LTServiceInfo
                 $ltservice_check = serviceCheck('LTService')
                 $ltsvcmon_check = serviceCheck('LTSVCMon')
                 # Get checkin / heartbeat times to DateTime
-                $lastsuccess = Get-Date $info.LastSuccessStatus
+                # This could throw exception because it is only returned if there has been a SuccessStatus
+				if ($info.LastSuccessStatus) {$lastsuccess = Get-Date $info.LastSuccessStatus} 
                 $lasthbsent = Get-Date $info.HeartbeatLastSent
                 $lasthbrcv = Get-Date $info.HeartbeatLastReceived
                 $online = $lastsuccess -ge $online_threshold
@@ -380,16 +539,34 @@ Function Start-AutomateDiagnostics {
                 }
                 else {
                     $compare_test = if (($hostname -eq $automate_server -and $automate_server -ne "") -or $automate_server -eq "") { $true } else { $false }
-                    if (Test-CommandExists -Command "Test-NetConnection") {
-                        Try { $conn_test = Test-NetConnection -ComputerName $hostname -Port 443 } Catch { 
-                            Write-Verbose "Port test failed"
-                            $conn_test = $false 
+                    if (Test-CommandExists -Command "Test-NetConnection" -and $use_sockets) {
+                        Try { $conn_test = Test-NetConnection -ComputerName $hostname -Port 443 -ErrorAction Stop } Catch {
+                            $timeout = 1000
+                            $netping = New-Object System.Net.NetworkInformation.Ping
+                            $ping = $netping.Send($hostname,$timeout)
+                            if ($ping.Status -eq 'Success') {
+                                Write-Verbose "Fallback to .net ping succeeded"
+                                $conn_test = $true
+                            }
+                            else {
+                                Write-Verbose "Port test failed"
+                                $conn_test = $false
+                            }
                         }
                     }
                     else {
-                        Try { $conn_test = Test-Connection -ComputerName $hostname } Catch { 
-                            Write-Verbose "Ping test failed"
-                            $conn_test = $false 
+                        Try { $conn_test = Test-Connection -ComputerName $hostname -Count 1 -ErrorAction Stop } Catch { 
+                            $timeout = 1000
+                            $netping = New-Object System.Net.NetworkInformation.Ping
+                            $ping = $netping.Send($hostname,$timeout)
+                            if ($ping.Status -eq 'Success') {
+                                Write-Verbose "Fallback to .net ping succeeded"
+                                $conn_test = $true
+                            }
+                            else {
+                                Write-Verbose "Ping test failed"
+                                $conn_test = $false 
+                            }
                         }
                     }
 
@@ -429,7 +606,7 @@ Function Start-AutomateDiagnostics {
             if ($target_version -eq $info.Version) {
                 $update_text = "Version {0} - Latest" -f $info.Version
             }
-            else {
+            elseif (!$skip_updates) {
                 Write-Verbose "Starting update"
                 taskkill /im ltsvc.exe /f
                 taskkill /im ltsvcmon.exe /f
@@ -454,6 +631,9 @@ Function Start-AutomateDiagnostics {
                 }
 
             }
+            else {
+                $update_text = "Updates needed, available version {0}" -f $target_version
+            }
             # Collect diagnostic data into hashtable
             $diag = @{
                 'id' = $info.id
@@ -473,10 +653,13 @@ Function Start-AutomateDiagnostics {
                 'locationid' = $info.LocationID
                 'ltsvc_path_exists' = $ltsvc_path_exists
                 'janus_status' = $janus_res
+                'signup_failure' = $signup_failure
+                'agent_crypto_failure' = $agent_crypto_failure
+                'lterrors' = $lterrors_enc
             }
         }
         Catch { # LTPosh loaded, issue with agent
-            $_.Exception.Message
+            $exception = $_.Exception.Message
             $repair = if (-not ($ltsvc_path_exists) -or $ltsvcmon_check.Status -eq "Not Detected" -or $ltservice_check.Status -eq "Not Detected" -or $null -eq $id -or $janus_res -eq $false) { "Reinstall" } else { "Restart" }
             if ($null -eq $version -or $ltsvc_path_exists -eq $false) { $version = "Agent error" }
             if ($janus_res -eq $false) { $version = "Janus failure" }
@@ -492,6 +675,10 @@ Function Start-AutomateDiagnostics {
                 'clientid' = $clientid
                 'repair' = $repair
                 'janus_status' = $janus_res
+                'signup_failure' = $signup_failure
+                'agent_crypto_failure' = $agent_crypto_failure
+                'lterrors' = $lterrors_enc
+                'exception' = $exception
             }
         }
     }
@@ -507,15 +694,19 @@ Function Start-AutomateDiagnostics {
             'ltposh_loaded' = $ltposh_loaded
             'version' = $version
             'janus_status' = $janus_res
+            'signup_failure' = $signup_failure
+            'agent_crypto_failure' = $agent_crypto_failure
+            'lterrors' = $lterrors_enc
         }
     }
-	Write-Output "!---BEGIN JSON---!"
 
 	# Output diagnostic data in JSON format - ps2.0 compatible
 	if ($psver -ge [version]"3.0.0.0") {
-		$diag | ConvertTo-Json -depth 2
+		$output = $diag | ConvertTo-Json -depth 2
 	}
 	else {
-		$diag | ConvertTo-STJson
-	}
+		$output = $diag | ConvertTo-STJson
+    }
+    Write-Host "!---BEGIN JSON---!"
+    Write-Host $output
 }
