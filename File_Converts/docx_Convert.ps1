@@ -22,7 +22,10 @@ $docFixedFormat = [Microsoft.Office.Interop.Word.WdSaveFormat]::wdFormatXMLDocum
 write-host $docFixedFormat
 $word = New-Object -ComObject Word.Application
 $word.visible = $true
+
+# Sets the file types
 $filetype ="*doc"
+$newFileExt = ".docx"
 
 # Grab all files in the path chosen above.
 $allFiles = Get-ChildItem -Path $folderpath -Include $filetype -recurse
@@ -50,7 +53,7 @@ $allFiles | ForEach-Object -Begin {
 		"Converting $path"
 		$document = $word.Documents.open($_.fullname)
  
-		$path += ".docx"
+		$path += $newFileExt
 		$document.saveas($path, $docFixedFormat)
 		$document.close()
 
