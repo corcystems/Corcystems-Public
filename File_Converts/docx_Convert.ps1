@@ -53,7 +53,7 @@ $allFiles | ForEach-Object -Begin {
 		$path += ".docx"
 		$document.saveas($path, $docFixedFormat)
 		$document.close()
-	
+
 		# Move the old file to another directory
 		$oldFolder = $path.substring(0, $path.lastIndexOf("\")) + "\old"
 		write-host $oldFolder
@@ -63,13 +63,15 @@ $allFiles | ForEach-Object -Begin {
 				new-item $oldFolder -type directory
 			}
 
-		move-item $_.fullname $oldFolder
-	
 		#Grab Last modified Date
 		$fileLastModified = $_.LastWriteTime
-	
+
+		move-item $_.fullname $oldFolder
+
 		#Update Last Modified time on the new file to match the old modified time
-		Get-ChildItem $_.fullname | % {$_.LastWriteTime = $fileLastModified}
+		Get-ChildItem $path | % {$_.LastWriteTime = $fileLastModified}
+	
+
 	} # End of the convertion Loop
 
 # End of script cleanup
