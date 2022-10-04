@@ -47,7 +47,7 @@ function File_Extension_Form{
     $MyGroupBox = New-Object System.Windows.Forms.GroupBox
     $MyGroupBox.Location = '40,30'
     $MyGroupBox.size = '400,110'
-    $MyGroupBox.text = "What type of file do you want to convert?"
+    $MyGroupBox.text = "What file type do you want to convert?"
     
     # Create the collection of radio buttons
     $RadioButtonDoc = New-Object System.Windows.Forms.RadioButton
@@ -99,12 +99,12 @@ function File_Extension_Form{
         if ($RadioButtonDoc.Checked){
             $oldFileType = "doc"
             }
-		# Return that xls was chosen.
+	# Return that xls was chosen.
         elseif ($RadioButtonXls.Checked){
             $oldFileType = "xls"
             }
         }
-return $oldFileType
+	return $oldFileType
 } # End of the File_Extension_Form function
 
 
