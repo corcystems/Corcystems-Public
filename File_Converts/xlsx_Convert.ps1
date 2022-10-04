@@ -68,13 +68,11 @@ $allFiles | ForEach-Object -Begin {
 
 		#Grab Last modified Date
 		$fileLastModified = $_.LastWriteTime
-
-		move-item $_.fullname $oldFolder
-
 		#Update Last Modified time on the new file to match the old modified time
 		Get-ChildItem $path | % {$_.LastWriteTime = $fileLastModified}
-	
-
+		
+		# Finally move the old file
+		move-item $_.fullname $oldFolder
 	} # End of the convertion Loop
 
 # End of script cleanup
