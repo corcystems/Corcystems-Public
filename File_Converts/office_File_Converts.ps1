@@ -191,7 +191,7 @@ if ($fileTypeSelection -eq "xls"){
 	}
 	$officeFixedFormat = [Microsoft.Office.Interop.Excel.XlFileFormat]::xlOpenXMLWorkbook
 	write-host $officeFixedFormat
-	$office = New-Object -ComObject New-Object -ComObject excel.application
+	$office = New-Object -ComObject excel.application
 	$office.visible = $true
 }
 
