@@ -212,7 +212,7 @@ $allFiles | ForEach-Object -Begin {
 		$i = $i+1
 		# Progress bar lines
 		$Completed = ($i/$allFiles.count*100)
-		Write-Progress -Activity "Searching Files" -Status "$Completed% Complete:" -PercentComplete $Completed
+		Write-Progress -Activity "Searching Files" -Status "$Completed% Complete Converting File $i/$allFiles.count" -PercentComplete $Completed
 
 		# Set the path variable.
 		$path = ($_.fullname).substring(0, ($_.FullName).lastindexOf("."))
