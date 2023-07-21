@@ -1,4 +1,5 @@
-$cwaRegInfo = Get-ItemProperty -Path "HKLM:\SOFTWARE\LabTech\Service" -ErrorAction SilentlyContinue
+$errorActionPreference = SilentlyContinue
+$cwaRegInfo = Get-ItemProperty -Path "HKLM:\SOFTWARE\LabTech\Service"
 if($Error) {Write-Host "Not Installed"; exit}
 if($null -ne $cwaRegInfo.ID -and $cwaRegInfo.ID -gt 0) {
 	$cwaOutput = Get-ItemProperty -Path HKLM:\SOFTWARE\LabTech\Service -Name "Version" | Select -expandproperty Version
