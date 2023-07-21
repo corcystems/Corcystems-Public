@@ -1,6 +1,3 @@
-[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Per use variables modify as needed
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
