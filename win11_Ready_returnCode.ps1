@@ -479,4 +479,8 @@ Switch ($outObject.returnCode) {
 }
 
 #Export full results
-$outObject | fl
+if ($outObject.returnCode -like "1") {
+  Write-Host "1"
+} else {
+  Write-Host "0"
+}
