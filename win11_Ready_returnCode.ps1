@@ -232,20 +232,8 @@ using System.Runtime.InteropServices;
 
 # Storage
 try {
-
-    #$osDrive = Get-WmiObject -Class Win32_OperatingSystem | Select-Object -Property SystemDrive
-    #Customized - Altering the above check to simply look at the largest fixed disk so it functions in WinPE.
-    $osDriveSize = Get-WmiObject -Class Win32_LogicalDisk -filter "DriveType=3" | Select-Object @{Name = "SizeGB"; Expression = { $_.Size / 1GB -as [int] } }
-
-    foreach ($Drive in $osDriveSize){
-        if ($Drive.SizeGB -lt $MinOSDiskSizeGB) {
-        #do nothing
-        } else {
-        $largestDisk = $Drive
-        }
-    }
-
-    $osDriveSize = $largestDisk
+    $osDrive = Get-WmiObject -Class Win32_OperatingSystem | Select-Object -Property SystemDrive
+    $osDriveSize = Get-WmiObject -Class Win32_LogicalDisk -filter "DeviceID='$($osDrive.SystemDrive)'" | Select-Object @{Name = "SizeGB"; Expression = { $_.Size / 1GB -as [int] } }  
 
     if ($null -eq $osDriveSize) {
         UpdateReturnCode -ReturnCode 1
@@ -265,7 +253,6 @@ try {
     }
 }
 catch {
-    
     UpdateReturnCode -ReturnCode -1
     $outObject.logging += $logFormat -f $STORAGE_STRING, $OS_DISK_SIZE_STRING, $UNDETERMINED_STRING, $UNDETERMINED_CAPS_STRING
     $outObject.logging += $logFormatException -f "$($_.Exception.GetType().Name) $($_.Exception.Message)"
@@ -302,9 +289,7 @@ catch {
 
 # TPM
 try {
-    
-    #Customized - Alterted TPM check to use WMI instead of Get-TPM so function works in WinPE.
-    $tpm = Get-WmiObject -Class Win32_Tpm -Namespace root\CIMV2\Security\MicrosoftTpm
+    $tpm = Get-Tpm
 
     if ($null -eq $tpm) {
         UpdateReturnCode -ReturnCode 1
@@ -312,7 +297,7 @@ try {
         $outObject.logging += $logFormatWithBlob -f $TPM_STRING, "TPM is null", $FAIL_STRING
         $exitCode = 1
     }
-    elseif ($null -ne $tpm) {
+    elseif ($tpm.TpmPresent) {
         $tpmVersion = Get-WmiObject -Class Win32_Tpm -Namespace root\CIMV2\Security\MicrosoftTpm | Select-Object -Property SpecVersion
 
         if ($null -eq $tpmVersion.SpecVersion) {
