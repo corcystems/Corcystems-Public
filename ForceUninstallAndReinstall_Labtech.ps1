@@ -115,7 +115,11 @@ if (-not (LabtechIsInstalled)) {
 	if ($WriteOutput) {Write-Host "Downloaded new $LabtechInstalerLocalPath"}
 	
     #Run the installer with the correct arguements
-    msiexec.exe /install C:\LabTechRemoteAgent.exe /quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation
+    $Command = "C:\LabTechRemoteAgent.exe"
+    $Parms = "/install /quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation"
+    $Parms = $Parms.Split(" ")
+    & "$Command" $Parms
+
 	if ($WriteOutput) {Write-Host "Started installer"}
     
 	if ($WriteOutput) {Write-Host "Checking for sucessful install"}	
