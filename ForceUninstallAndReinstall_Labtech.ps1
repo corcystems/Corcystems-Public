@@ -118,14 +118,8 @@ if (-not (LabtechIsInstalled)) {
  	if ($WriteOutput) {Write-Host "Started installer"}
 
     #Run the installer with the correct arguements
-    FilePath     = 'C:\LabTechRemoteAgent.exe'
-    ArgumentList = '/install', '/quiet', '/norestart', 'SERVERADDRESS=$LabtechServerURL', 'SERVERPASS=$LabtechServerPassword', 'LOCATION=$ClientLocation'
-    Wait         = $true
-    PassThru     = $true
-    }
-    Start-Process $LabtechInstalerLocalPath 
-    
-    
+    Start-Process $LabtechInstalerLocalPath -ArgumentList $LabtechInstalerArguments
+        
 	if ($WriteOutput) {Write-Host "Checking for sucessful install"}	
 	#Wait for the services to install
 	$ServiceChecks = 0
