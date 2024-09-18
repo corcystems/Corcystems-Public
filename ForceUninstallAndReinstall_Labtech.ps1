@@ -22,6 +22,7 @@ $LabtechFilesLocalPath = "C:\Windows\LTSvc"
 $LTServices = @("LTSvcMon", "LTService")
 $LTProcesses = @("LTSvcMon","LTSVC","LTClient","LTTray")
 $LabtechServerPassword = '/STFO7fbHC/H7qighp5SQVQJi3rKlFfM'
+$LabtechInstalerArguments = "/install /quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Helper functions do not change
@@ -117,14 +118,13 @@ if (-not (LabtechIsInstalled)) {
  	if ($WriteOutput) {Write-Host "Started installer"}
 
     #Run the installer with the correct arguements
-    $startParams = @{
     FilePath     = 'C:\LabTechRemoteAgent.exe'
     ArgumentList = '/install', '/quiet', '/norestart', 'SERVERADDRESS=$LabtechServerURL', 'SERVERPASS=$LabtechServerPassword', 'LOCATION=$ClientLocation'
     Wait         = $true
     PassThru     = $true
     }
-    $proc = Start-Process @startParams
-    $proc.ExitCode
+    Start-Process $LabtechInstalerLocalPath 
+    
     
 	if ($WriteOutput) {Write-Host "Checking for sucessful install"}	
 	#Wait for the services to install
