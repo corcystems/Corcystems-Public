@@ -113,14 +113,18 @@ if (-not (LabtechIsInstalled)) {
 	}
     Invoke-WebRequest -Uri $LabtechInstallerURL -Outfile $LabtechInstalerLocalPath
 	if ($WriteOutput) {Write-Host "Downloaded new $LabtechInstalerLocalPath"}
-	
-    #Run the installer with the correct arguements
-    $Command = "C:\LabTechRemoteAgent.exe"
-    $Parms = "/install /quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation"
-    $Parms = $Parms.Split(" ")
-    & "$Command" $Parms
 
-	if ($WriteOutput) {Write-Host "Started installer"}
+ 	if ($WriteOutput) {Write-Host "Started installer"}
+
+    #Run the installer with the correct arguements
+    $startParams = @{
+    FilePath     = 'C:\LabTechRemoteAgent.exe'
+    ArgumentList = '/install', '/quiet', '/norestart', 'SERVERADDRESS=$LabtechServerURL', 'SERVERPASS=$LabtechServerPassword', 'LOCATION=$ClientLocation'
+    Wait         = $true
+    PassThru     = $true
+    }
+    $proc = Start-Process @startParams
+    $proc.ExitCode
     
 	if ($WriteOutput) {Write-Host "Checking for sucessful install"}	
 	#Wait for the services to install
