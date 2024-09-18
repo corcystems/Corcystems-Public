@@ -15,9 +15,9 @@ $WriteOutput = $True
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $LabtechServerURL = "https://labtech.corcystems.com"
 $LabtechUninstallerURL = "https://labtech.corcystems.com/labtech/service/LabUninstall.exe"
-$LabtechInstallerURL = "https://labtech.corcystems.com/labtech/service/LabTechRemoteAgent.msi"
+$LabtechInstallerURL = "https://labtech.corcystems.com/labtech/service/LabTechRemoteAgent.exe"
 $LabtechUninstallerLocalPath = "C:\LabUninstall.exe"
-$LabtechInstalerLocalPath = "C:\LabTechRemoteAgent.msi"
+$LabtechInstalerLocalPath = "C:\LabTechRemoteAgent.exe"
 $LabtechFilesLocalPath = "C:\Windows\LTSvc"
 $LTServices = @("LTSvcMon", "LTService")
 $LTProcesses = @("LTSvcMon","LTSVC","LTClient","LTTray")
@@ -115,7 +115,7 @@ if (-not (LabtechIsInstalled)) {
 	if ($WriteOutput) {Write-Host "Downloaded new $LabtechInstalerLocalPath"}
 	
     #Run the installer with the correct arguements
-    msiexec.exe /i C:\LabTechRemoteAgent.msi /quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation
+    msiexec.exe /install C:\LabTechRemoteAgent.exe /quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation
 	if ($WriteOutput) {Write-Host "Started installer"}
     
 	if ($WriteOutput) {Write-Host "Checking for sucessful install"}	
