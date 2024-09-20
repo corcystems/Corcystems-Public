@@ -118,7 +118,7 @@ if (-not (LabtechIsInstalled)) {
  	if ($WriteOutput) {Write-Host "Started installer"}
 
     #Run the installer with the correct arguements
-    msiexe.exe /i $LabtechInstalerLocalPath + $LabtechInstalerArguments
+    msiexec.exe /i $LabtechInstalerLocalPath + $LabtechInstalerArguments
         
 	if ($WriteOutput) {Write-Host "Checking for sucessful install"}	
 	#Wait for the services to install
