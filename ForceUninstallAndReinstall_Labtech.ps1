@@ -15,14 +15,14 @@ $WriteOutput = $True
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $LabtechServerURL = "https://labtech.corcystems.com"
 $LabtechUninstallerURL = "https://labtech.corcystems.com/labtech/service/LabUninstall.exe"
-$LabtechInstallerURL = "https://labtech.corcystems.com/labtech/service/LabTechRemoteAgent.exe"
+$LabtechInstallerURL = "https://labtech.corcystems.com/labtech/service/LabTechRemoteAgent.msi"
 $LabtechUninstallerLocalPath = "C:\LabUninstall.exe"
 $LabtechInstalerLocalPath = "C:\LabTechRemoteAgent.exe"
 $LabtechFilesLocalPath = "C:\Windows\LTSvc"
 $LTServices = @("LTSvcMon", "LTService")
 $LTProcesses = @("LTSvcMon","LTSVC","LTClient","LTTray")
 $LabtechServerPassword = '/STFO7fbHC/H7qighp5SQVQJi3rKlFfM'
-$LabtechInstalerArguments = "/install /quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation"
+$LabtechInstalerArguments = "/quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Helper functions do not change
@@ -118,7 +118,7 @@ if (-not (LabtechIsInstalled)) {
  	if ($WriteOutput) {Write-Host "Started installer"}
 
     #Run the installer with the correct arguements
-    Start-Process $LabtechInstalerLocalPath -ArgumentList $LabtechInstalerArguments
+    & "msiexe.exe /i $LabtechInstalerLocalPath $LabtechInstalerArguments"
         
 	if ($WriteOutput) {Write-Host "Checking for sucessful install"}	
 	#Wait for the services to install
