@@ -22,7 +22,7 @@ $LabtechFilesLocalPath = "C:\Windows\LTSvc"
 $LTServices = @("LTSvcMon", "LTService")
 $LTProcesses = @("LTSvcMon","LTSVC","LTClient","LTTray")
 $LabtechServerPassword = '/STFO7fbHC/H7qighp5SQVQJi3rKlFfM'
-$LabtechInstalerArguments = "/quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation"
+$LabtechInstalerArguments = '/quiet /norestart SERVERADDRESS=$LabtechServerURL SERVERPASS=$LabtechServerPassword LOCATION=$ClientLocation'
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Helper functions do not change
@@ -118,7 +118,7 @@ if (-not (LabtechIsInstalled)) {
  	if ($WriteOutput) {Write-Host "Started installer"}
 
     #Run the installer with the correct arguements
-    & "msiexe.exe /i $LabtechInstalerLocalPath $LabtechInstalerArguments"
+    msiexe.exe /i $LabtechInstalerLocalPath + $LabtechInstalerArguments
         
 	if ($WriteOutput) {Write-Host "Checking for sucessful install"}	
 	#Wait for the services to install
