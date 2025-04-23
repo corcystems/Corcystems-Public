@@ -21,7 +21,7 @@ $LabtechInstalerLocalPath = "C:\LabTechRemoteAgent.msi"
 $LabtechFilesLocalPath = "C:\Windows\LTSvc"
 $LTServices = @("LTSvcMon", "LTService")
 $LTProcesses = @("LTSvcMon","LTSVC","LTClient","LTTray")
-$LabtechServerPassword = '/STFO7fbHC/H7qighp5SQVQJi3rKlFfM'
+$LabtechServerPassword = '+XEexr7fZ8aU/y5JIsF48LwyIKQwwCPz'
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Helper functions do not change
