@@ -73,7 +73,7 @@ catch {
 # Ending Size Pull and Saved GB
 $driveSizeEnd = Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Root -eq "$($env:SystemDrive)\" }
 $driveSizeEndGB = [math]::Round($driveSizeStart.Free / 1GB, 2)
-$savedSpaceGB = $driveSizeEndGB.Free - $driveSizeStartGB.Free
+$savedSpaceGB = $driveSizeEndGB - $driveSizeStartGB
 
 # Log Ending Size Pull and saved
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -87,3 +87,4 @@ $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 "$timestamp - === Disk Cleanup Completed ===" | Out-File -FilePath $LogFile -Append
 Write-Host "=== Disk Cleanup Completed ==="	
 Write-Host "Cleanup complete. Log saved to: $LogFile"
+
