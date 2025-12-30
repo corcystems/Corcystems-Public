@@ -17,7 +17,7 @@ $LogFile = "C:\CorTools\DiskCleanup_$(Get-Date -Format 'yyyyMM').log"
 
 # Log Disk Cleanup Started
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-"$timestamp - === Disk Cleanup Started ===" | Out-File -FilePath $LogFile -Append
+"$timestamp - === Disk Cleanup Started ===" | Out-File -FilePath $LogFile -Append -Encoding UTF8
 Write-Host "=== Disk Cleanup Started ==="
 
 # Initial Size Pull
@@ -26,7 +26,7 @@ $driveSizeStartGB = [math]::Round($driveSizeStart.Free / 1GB, 2)
 
 # Log Initial Size Pull
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-"$timestamp - $driveSizeStart Drive has $driveSizeStartGB GB free" | Out-File -FilePath $LogFile -Append
+"$timestamp - $driveSizeStart Drive has $driveSizeStartGB GB free" | Out-File -FilePath $LogFile -Append -Encoding UTF8
 Write-Host "$driveSizeStart Drive has $driveSizeStartGB GB free"
 
 # Clean the Paths
@@ -37,20 +37,20 @@ foreach ($path in $cleanPath){
                 Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
 				# Log Cleared: $path
 				$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-				"$timestamp - Cleared: $path" | Out-File -FilePath $LogFile -Append
+				"$timestamp - Cleared: $path" | Out-File -FilePath $LogFile -Append -Encoding UTF8
 				Write-Host "Cleared: $path"			
         }
         catch {
 			# Log Error clearing $path: $_
 			$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-			"$timestamp - Error clearing $path $_" | Out-File -FilePath $LogFile -Append
+			"$timestamp - Error clearing $path $_" | Out-File -FilePath $LogFile -Append -Encoding UTF8
 			Write-Host "Error clearing $path $_"	
         }
     }
     else {
 		# Log Path not found: $path
 		$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-		"$timestamp - Path not found: $path" | Out-File -FilePath $LogFile -Append
+		"$timestamp - Path not found: $path" | Out-File -FilePath $LogFile -Append -Encoding UTF8
 		Write-Host "Path not found: $path"	
     }
 }
@@ -60,13 +60,13 @@ try {
     Clear-RecycleBin -Force -ErrorAction SilentlyContinue
 	# Log Recycle Bin emptied.
 	$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-	"$timestamp - Recycle Bin emptied." | Out-File -FilePath $LogFile -Append
+	"$timestamp - Recycle Bin emptied." | Out-File -FilePath $LogFile -Append -Encoding UTF8
 	Write-Host "Recycle Bin emptied."
 }
 catch {
 	# Log Error emptying Recycle Bin: $_
 	$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-	"$timestamp - Error emptying Recycle Bin $_" | Out-File -FilePath $LogFile -Append
+	"$timestamp - Error emptying Recycle Bin $_" | Out-File -FilePath $LogFile -Append -Encoding UTF8
 	Write-Host "Error emptying Recycle Bin $_"
 }
 
@@ -77,15 +77,16 @@ $savedSpaceGB = [math]::Round($driveSizeEndGB - $driveSizeStartGB, 2)
 
 # Log Ending Size Pull and saved
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-"$timestamp - $driveSizeEnd Drive has $driveSizeEndGB GB free" | Out-File -FilePath $LogFile -Append
+"$timestamp - $driveSizeEnd Drive has $driveSizeEndGB GB free" | Out-File -FilePath $LogFile -Append -Encoding UTF8
 Write-Host "$driveSizeEnd Drive has $driveSizeEndGB GB free"
-"$timestamp - Saved $savedSpaceGB GB on the $driveSizeEnd Drive." | Out-File -FilePath $LogFile -Append
+"$timestamp - Saved $savedSpaceGB GB on the $driveSizeEnd Drive." | Out-File -FilePath $LogFile -Append -Encoding UTF8
 Write-Host "Saved $savedSpaceGB GB on the $driveSizeEnd Drive."
 
 # Log Disk Cleanup Completed
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-"$timestamp - === Disk Cleanup Completed ===" | Out-File -FilePath $LogFile -Append
+"$timestamp - === Disk Cleanup Completed ===" | Out-File -FilePath $LogFile -Append -Encoding UTF8
 Write-Host "=== Disk Cleanup Completed ==="	
 Write-Host "Cleanup complete. Log saved to: $LogFile"
+
 
 
